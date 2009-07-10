@@ -1,0 +1,7 @@
+.RData
+.Rhistory
+*~
+*.Rcheck
+*.o
+*.so
+.#*

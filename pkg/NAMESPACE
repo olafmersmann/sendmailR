@@ -1,0 +1,3 @@
+## sendmailR.r
+export(sendmail)
+export(sendmailOptions)
