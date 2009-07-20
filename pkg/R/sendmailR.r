@@ -5,23 +5,32 @@
 ##  Olaf Mersmann (OME) <olafm@datensplitter.net>
 ##
 
-smtpSubmitMail <- function(server, port, from, to, headers, msg) {
+smtpSubmitMail <- function(server, port, from, to, headers, msg, verbose=FALSE) {
   waitFor <- function(lcode) {
     done <- FALSE
     while (!done) {
       line <- readLines(con=sock, n=1)
+      if (verbose)
+        message("<< ", line)
       code <- substring(line, 1, 3)
       msg <- substring(line, 5)
-      if (code == lcode)
+      if (code == lcode) {
         done <- TRUE
-      if (code >= 500 & code <= 599)
-        stop("SMTP Error: ", msg)
+      } else {
+        if (code >= 500 & code <= 599)
+          stop("SMTP Error: ", msg)
+        else
+          message("Unknown SMTP code: ", code)
+      }
+      
     }
     return(list(code=code, msg=msg))
   }
 
   sendCmd <- function(cmd, code) {
-    writeLines(cmd, sock)
+    if (verbose)
+      message(">> ", cmd)
+    writeLines(cmd, sock, sep="\r\n")
     waitFor(code)
   }
 
@@ -48,12 +57,20 @@ smtpSubmitMail <- function(server, port, from, to, headers, msg) {
   ## << 354 blah fu
   sendCmd("DATA", 354)
   ## >> <actual message + headers + .>
+  if (verbose)
+    message(">> <message data>")
   headers$From <- from
-  headers$To <- to
-  writeLines(paste(names(headers), unlist(headers), sep=": "), sock)
-  writeLines("", sock)
-  writeLines(msg, sock)
-  writeLines(c("."), sock)
+  headers$To <- to  
+  writeLines(paste(names(headers), unlist(headers), sep=": "), sock, sep="\r\n")
+  writeLines("", sock, sep="\r\n")
+  writeLines(msg, sock, sep="\r\n")
+  writeLines(".", sock, sep="\r\n")
+  if (verbose) {
+    writeLines(paste(names(headers), unlist(headers), sep=": "))
+    writeLines("")
+    writeLines(msg)
+    message(">> EOM marker")
+  }
   waitFor(250)
   ## << 250 2.0.0 Ok: queued as XXXXXXXX
   ## >> QUIT
@@ -82,8 +99,9 @@ sendmail <- function(from, to, subject, msg, ...,
 
   server <- getValue("smtpServer", "localhost")
   port <- getValue("smtpPort", 25)
-
-  smtpSubmitMail(server, port, from, to, headers, msg)
+  verbose <- getValue("verbose", FALSE)
+  
+  smtpSubmitMail(server, port, from, to, headers, msg, verbose)
 }
 
 ## Option managment shamelessly taken from the lattice package.

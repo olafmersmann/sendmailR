@@ -20,4 +20,14 @@ sendmail(from, to, subject, msg, ..., headers = list(), control = list())
     possible options for \code{\link{sendmailOptions}}.}
 }
 \author{Olaf Mersmann \email{olafm@datensplitter.net}}
+\examples{
+\dontrun{
+from <- sprintf("<sendmailR@%s>", Sys.info()[4])
+to <- "<olafm@datensplitter.net>"
+subject <- "Hello from R"
+msg <- "It works!"
+sendmail(from, to, subject, msg,
+         control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
+}
+}
 \keyword{utilities}
