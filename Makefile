@@ -1,4 +1,4 @@
-.PHONEY: clean test check build install
+.PHONEY: clean test check build install pkg
 
 install: clean
 	R CMD INSTALL --no-multiarch pkg
@@ -14,6 +14,8 @@ clean:
 
 pkg: clean
 	echo "Date: $(date +%Y-%m-%d)" >> pkg/DESCRIPTION
+	git log --no-merges -M --date=iso --format=medium pkg/ > pkg/ChangeLog
 	R CMD build pkg
 	R CMD build --binary pkg
 	git checkout pkg/DESCRIPTION
+	rm -f pkg/ChangeLog
