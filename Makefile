@@ -36,7 +36,7 @@ clean:
 	rm -fR pkg
 	rm -fR .RData .Rhistory build.log install.log roxygen.log
 
-package: clean
+package: pkg
 	echo "Building package..."
 	echo "Date: $(date +%Y-%m-%d)" >> pkg/DESCRIPTION
 	git log --no-merges -M --date=iso skel/ > pkg/ChangeLog
