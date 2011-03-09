@@ -7,7 +7,6 @@
   local SMTP server.
 }
 \usage{
-sendmail(from, to, subject, msg, ..., headers = list(), control = list())
 }
 \arguments{
   \item{from}{From whom the mail message is (RFC2822 style address).}
