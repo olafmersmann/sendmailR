@@ -108,6 +108,11 @@ sendmail <- function(from, to, subject, msg, ...,
                      control=list()) {
   ## Argument checks:
   stopifnot(is.list(headers), is.list(control))
+  if (length(from) != 1)
+    stop("'from' must be a single address.")
+  
+  if (length(to) != 1)
+    stop("'to' must be a single address.")
   
   get_value <- function(n, default="") {
     if (n %in% names(control)) {
@@ -118,7 +123,7 @@ sendmail <- function(from, to, subject, msg, ...,
       return(default)      
     }
   }
-
+  
   headers$From <- from
   headers$To <- to
   headers$Subject <- subject
