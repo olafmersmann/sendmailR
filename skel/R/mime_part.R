@@ -100,6 +100,23 @@ mime_part.default <- function(x, name, ...) {
 mime_part.trellis <- function(x, name=deparse(substitute(x)), device=pdf, ...)
   .plot_attachment(x, name=name, device=device, ...)
 
+##' Creates a MIME part from a ggplot2 plot object
+##'
+##' Writes a PDF file of the plot defined by \code{x} and turns this
+##' PDF file into a file attachment.
+##'
+##' @param x A \code{ggplot} object
+##' @param name Name of attachment (sans .pdf extension).
+##' @param device Graphics device used to render the plot. Defaults to
+##'   \code{pdf}.
+##' @param ... Ignored.
+##' @return An S3 \code{mime_part} object.
+##' 
+##' @method mime_part ggplot
+##' @S3method mime_part ggplot
+mime_part.ggplot <- function(x, name=deparse(substitute(x)), device=pdf, ...)
+  .plot_attachment(x, name=name, device=device, ...)
+
 ##' Create a MIME part from a matrix.
 ##'
 ##' @param x Matrix
