@@ -31,12 +31,12 @@
 
   b64file <- tempfile()
   base64::encode(fn, b64file)
-  header <- list("Content-Type"=type,
-                 "Content-Disposition"=sprintf("%s; filename=%s",
-                   disposition, name),
-                 "Content-Transfer-Encoding"="base64")
+  headers <- list("Content-Type"=type,
+                  "Content-Disposition"=sprintf("%s; filename=%s",
+                    disposition, name),
+                  "Content-Transfer-Encoding"="base64")
   
-  .mime_part(header=header, file=b64file)
+  .mime_part(headers=headers, file=b64file)
 }
 
 .plot_attachment <- function(plt, name=deparse(substitute(plt)), device, ...) {

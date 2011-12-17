@@ -102,6 +102,34 @@
   send_command("QUIT", 221)
 }
 
+##' Simplistic sendmail utility for R. Uses SMTP to submit a message
+##' to a local SMTP server.
+##'
+##' @title Send mail from within R
+##'
+##' @param from From whom the mail message is (RFC2822 style address).
+##' @param to Recipient of the message (valid RFC2822 style address).
+##' @param subject Subject line of message.
+##' @param msg Body text of message or a list containing
+##'   \code{\link{mime_part}} objects.
+##' @param \dots ...
+##' @param headers Any other headers to include.
+##' @param control List of SMTP server settings. Valid values are the
+##'   possible options for \code{\link{sendmail_options}}.
+##'
+##' @seealso \code{\link{mime_part}} for a way to add attachments.
+##' @keywords utilities
+##' 
+##' @examples
+##' \dontrun{
+##' from <- sprintf("<sendmailR@@\\%s>", Sys.info()[4])
+##' to <- "<olafm@@datensplitter.net>"
+##' subject <- "Hello from R"
+##' body <- list("It works!", mime_part(iris))
+##' sendmail(from, to, subject, body,
+##'          control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
+##' }
+##'
 ##' @export
 sendmail <- function(from, to, subject, msg, ...,
                      headers=list(),
