@@ -29,14 +29,13 @@
   if (missing(name))
     name <- basename(fn)
 
-  b64file <- tempfile()
-  base64::encode(fn, b64file)
+  text <- base64encode(fn, linewidth=72, newline="\n")
   headers <- list("Content-Type"=type,
                   "Content-Disposition"=sprintf("%s; filename=%s",
                     disposition, name),
                   "Content-Transfer-Encoding"="base64")
   
-  .mime_part(headers=headers, file=b64file)
+  .mime_part(headers=headers, text=text)
 }
 
 .plot_attachment <- function(plt, name=deparse(substitute(plt)), device, ...) {

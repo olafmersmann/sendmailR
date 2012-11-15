@@ -6,6 +6,6 @@ Description: Package contains a simple SMTP client which provides a
   within R.
 Author: Olaf Mersmann <olafm@datensplitter.net>
 Maintainer: Olaf Mersmann <olafm@datensplitter.net>
-Depends: R (>= 2.11.0), base64
+Depends: R (>= 2.15.0), base64enc
 License: GPL-2
 LazyData: yes
