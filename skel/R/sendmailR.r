@@ -5,6 +5,14 @@
 ##  Olaf Mersmann (OME) <olafm@datensplitter.net>
 ##
 
+.rfc2822_date <- function(time=Sys.time()) {
+  lc <- Sys.getlocale("LC_TIME")
+  on.exit(Sys.setlocale("LC_TIME", lc))
+  Sys.setlocale("LC_TIME", "C")
+  strftime(time, format="%a, %d %b %Y %H:%M:%S -0000",
+           tz="UTC", use.tz=TRUE)
+}
+
 .write_mail <- function(headers, msg, sock) {
   if (!is.list(msg))
     msg <- list(msg)
@@ -156,6 +164,12 @@ sendmail <- function(from, to, subject, msg, ...,
   headers$To <- to
   headers$Subject <- subject
 
+  ## Add Date header if not explicitly set. This fixes the annoyance,
+  ## that apparently Thunderbird does not sort mails correctly if they
+  ## do not have a Date header.
+  if (is.null(headers$Date))
+    headers$Date <- .rfc2822_date()
+  
   transport <- get_value("transport", "smtp")
   verbose <- get_value("verbose", FALSE)
   if (transport == "smtp") {
