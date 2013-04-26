@@ -23,6 +23,7 @@
     writeLines(readLines(mp$file), con, sep="\r\n")
 }
 
+#' @importFrom base64enc base64encode
 .file_attachment <- function(fn, name,
                              type="application/octet-stream",
                              disposition="attachment") {
