@@ -21,6 +21,18 @@
   boundary <- paste(packBits(sample(0:1, 256, TRUE)), collapse="")
   headers$`MIME-Version` <- "1.0"
   headers$`Content-Type` <- sprintf("multipart/mixed; boundary=\"%s\"", boundary)
+  if ( is.list(headers$To) & !is.null(names(headers$To)) ) { 
+    names(headers$To) <- tolower(names(headers$To))
+    if ( 'bcc' %in% names(headers$To) ) headers$BCC <- paste(unlist(headers$To['bcc']),collapse=', ')
+    if ( 'cc' %in% names(headers$To) ) headers$CC <- paste(unlist(headers$To['cc']),collapse=', ') 
+    if ( 'to' %in% names(headers$To) ) { 
+      headers$To <- paste(unlist(headers$To['to']),collapse=', ')
+    } else { 
+      stop('To must be provided') 
+    }
+  } else {
+    headers$To <- paste(as.character(unlist(headers$To)),collapse=', ')
+  }
 
   writeLines(paste(names(headers),
                    unlist(headers), sep=": "),
@@ -43,7 +55,7 @@
 }
 
 .smtp_submit_mail <- function(server, port, headers, msg, verbose=FALSE) {
-  stopifnot(is.character(headers$From), is.character(headers$To))
+  stopifnot(is.character(headers$From))
   
   wait_for <- function(lcode) {
     done <- FALSE
@@ -91,7 +103,7 @@
   send_command(paste("MAIL FROM: ", headers$From), 250)
   ## >> RCPT TO: <bah@baz.org>
   ## << 250 2.1.5 Ok
-  send_command(paste("RCPT TO: ", headers$To), 250)
+  apply(as.array(as.character(unlist(headers$To))), 1, function(x) { send_command(paste("RCPT TO: ", x), 250) })
   ## >> DATA
   ## << 354 blah fu
   send_command("DATA", 354)
@@ -147,8 +159,8 @@ sendmail <- function(from, to, subject, msg, ...,
   if (length(from) != 1)
     stop("'from' must be a single address.")
   
-  if (length(to) != 1)
-    stop("'to' must be a single address.")
+  if (length(to) < 1)
+    stop("'to' must contain at least one address.")
   
   get_value <- function(n, default="") {
     if (n %in% names(control)) {
