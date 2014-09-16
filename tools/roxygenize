@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
 
-require("roxygen2")
-require("methods")
-roxygenize("skel", "pkg", unlink.target=TRUE)
+library("methods")
+library("roxygen2")
+roxygenize("pkg")
