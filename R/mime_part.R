@@ -74,7 +74,7 @@ mime_part <- function(x, name, ...)
 ##' @return An S3 \code{mime_part} object.
 ##'
 ##' @method mime_part default
-##' @S3method mime_part default
+##' @export
 mime_part.default <- function(x, name, ...) {
   str <- dput(x)
   .mime_part(headers=list(
@@ -96,7 +96,7 @@ mime_part.default <- function(x, name, ...) {
 ##' @return An S3 \code{mime_part} object.
 ##' 
 ##' @method mime_part trellis
-##' @S3method mime_part trellis
+##' @export
 mime_part.trellis <- function(x, name=deparse(substitute(x)), device=pdf, ...)
   .plot_attachment(x, name=name, device=device, ...)
 
@@ -113,7 +113,7 @@ mime_part.trellis <- function(x, name=deparse(substitute(x)), device=pdf, ...)
 ##' @return An S3 \code{mime_part} object.
 ##' 
 ##' @method mime_part ggplot
-##' @S3method mime_part ggplot
+##' @export
 mime_part.ggplot <- function(x, name=deparse(substitute(x)), device=pdf, ...)
   .plot_attachment(x, name=name, device=device, ...)
 
@@ -125,7 +125,7 @@ mime_part.ggplot <- function(x, name=deparse(substitute(x)), device=pdf, ...)
 ##' @return An S3 \code{mime_part} object
 ##' 
 ##' @method mime_part matrix
-##' @S3method mime_part matrix
+##' @export
 mime_part.matrix <- function(x, name=deparse(substitute(x)), ...) {
   f <- tempfile()
   on.exit(file.remove(f))
@@ -141,7 +141,7 @@ mime_part.matrix <- function(x, name=deparse(substitute(x)), ...) {
 ##' @return An S3 \code{mime_part} object.
 ##'
 ##' @method mime_part data.frame
-##' @S3method mime_part data.frame
+##' @export
 mime_part.data.frame <- function(x, name=deparse(substitute(x)), ...) {
   f <- tempfile()
   on.exit(file.remove(f))
@@ -158,7 +158,7 @@ mime_part.data.frame <- function(x, name=deparse(substitute(x)), ...) {
 ##' @return An S3 \code{mime_part} object.
 ##' 
 ##' @method mime_part character
-##' @S3method mime_part character
+##' @export
 mime_part.character <- function(x, name, ...) {
   if (length(x) == 1 && file.exists(x)) {
     .file_attachment(x, name, ...)
