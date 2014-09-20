@@ -5,4 +5,5 @@
 *.o
 *.so
 .#*
-pkg/
+pkg/examples
+dist
