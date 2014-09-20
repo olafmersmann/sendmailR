@@ -16,11 +16,25 @@ get_version_from_git <- function() {
   tag <- system2("git", c("describe", "--tags", "--match", "v*"),
                  stdout=TRUE, stderr=TRUE)
   is_clean <- system2("git", c("diff-index", "--quiet", tag)) == 0
+  suffix <- if (!is_clean) {
+    paste0(".", as.integer(Sys.time()))
+  } else {
+    ""
+  }
   version <- sub("v", "", tag, fixed=TRUE)
-  ## Remove cruft from end of version tag
-  version <- paste(strsplit(version, "-")[[1]][1:2], collapse="-")
-  if (!is_clean)
-    version <- paste(version, as.integer(Sys.time()), sep=".")
+  ## Reformat version number by chopping of the hash at the end and
+  ## appending an appropriate suffix if the tree is dirty.
+  version_parts <- strsplit(version, "-")[[1]]
+  version <- if (length(version_parts) == 2) {
+    paste(version_parts, collapse="-")
+  } else if (length(version_parts) == 4) {
+    revision <- if (is_clean) {
+      version_parts[3]
+    } else {
+      revision <- as.integer(version_parts[3]) + 1
+    }
+    paste(paste(version_parts[1:2], collapse="-"), revision, sep=".")
+  }   
   version
 }
 
