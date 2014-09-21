@@ -1,9 +1,9 @@
 Package: sendmailR
-Version: 1.2-0
+Version: 1.2-0.1
 Title: send email using R
 Description: Package contains a simple SMTP client which provides a
-        portable solution for sending email, including attachements,
-        from within R.
+        portable solution for sending email, including attachment, from
+        within R.
 Authors@R: c(person("Olaf", "Mersmann", role=c("aut", "cre"),
         email="olafm@p-value.net"), person("Quinn", "Weber",
         role="ctb"))
