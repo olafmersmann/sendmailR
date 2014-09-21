@@ -16,11 +16,6 @@ get_version_from_git <- function() {
   tag <- system2("git", c("describe", "--tags", "--match", "v*"),
                  stdout=TRUE, stderr=TRUE)
   is_clean <- system2("git", c("diff-index", "--quiet", tag)) == 0
-  suffix <- if (!is_clean) {
-    paste0(".", as.integer(Sys.time()))
-  } else {
-    ""
-  }
   version <- sub("v", "", tag, fixed=TRUE)
   ## Reformat version number by chopping of the hash at the end and
   ## appending an appropriate suffix if the tree is dirty.
@@ -38,14 +33,14 @@ get_version_from_git <- function() {
       revision <- as.integer(version_parts[3]) + 1
     }
     paste(paste(version_parts[1:2], collapse="-"), revision, sep=".")
-  }   
+  }
   version
 }
 
 do_build <- function(args) {
   do_update("all")
   message("INFO: Building package.")
-  if (!file.exists("dist")) 
+  if (!file.exists("dist"))
     dir.create("dist")
   fn <- build(".", path="dist", quiet=TRUE)
   messagef("INFO: Package source tarball '%s' created.", fn)
@@ -138,7 +133,9 @@ do_update <- function(args=NULL) {
   roclets <- c()
 
   if (length(args) == 0) {
+    message("ERROR: Not enough arguments for update command.")
     do_help("update")
+    quit(save="no", status=1)
   }
   if (args[1] == "all" || args[1] == "documentation" || args[1] == "man") {
     message("INFO: Updating manual pages.")
