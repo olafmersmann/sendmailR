@@ -15,8 +15,14 @@ package_name <- function() {
 get_version_from_git <- function() {
   tag <- system2("git", c("describe", "--tags", "--match", "v*"),
                  stdout=TRUE, stderr=TRUE)
-  is_clean <- system2("git", c("diff-index", "--quiet", tag)) == 0
+  
+  ## Ignoring changes in whitespace is critical. Roxygen may have changed the
+  ## spacing in the regenerated manual pages and esp. in the DESCRIPTION file
+  ## because the y pretty print it compared to what write.dcf does.
+  clean_args <- c("diff-index", "--ignore-space-change", "--quiet", tag)
+  is_clean <- system2("git", clean_args) == 0
   version <- sub("v", "", tag, fixed=TRUE)
+  
   ## Reformat version number by chopping of the hash at the end and
   ## appending an appropriate suffix if the tree is dirty.
   version_parts <- strsplit(version, "-")[[1]]
