@@ -26,7 +26,11 @@ get_version_from_git <- function() {
   ## appending an appropriate suffix if the tree is dirty.
   version_parts <- strsplit(version, "-")[[1]]
   version <- if (length(version_parts) == 2) {
-    paste(version_parts, collapse="-")
+    if (is_clean) {
+      paste(version_parts, collapse="-")
+    } else {
+      paste0(paste(version_parts, collapse="-"), ".1")
+    }
   } else if (length(version_parts) == 4) {
     revision <- if (is_clean) {
       version_parts[3]
