@@ -1,5 +1,5 @@
 Package: sendmailR
-Version: 1.2-1.1
+Version: 1.2-1.2
 Title: Send Email Using R
 Description: Package contains a simple SMTP client which provides a
         portable solution for sending email, including attachment, from
