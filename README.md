@@ -1,4 +1,4 @@
-# microbenchmarkCore
+# sendmailR
 Core microbenchmark timing functions
 
 ## Install development version
