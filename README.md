@@ -1,5 +1,5 @@
 # sendmailR
-Core microbenchmark timing functions
+Package contains a simple SMTP client which provides a portable solution for sending email, including attachment, from within R.
 
 ## Install development version
 
