@@ -66,6 +66,8 @@
     done <- FALSE
     while (!done) {
       line <- readLines(con=sock, n=1)
+      if( 0 == length(line))
+        stop("no data from server connection (this can be due to authentication issues)")
       if (verbose)
         message("<< ", line)
       code <- substring(line, 1, 3)
