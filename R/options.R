@@ -3,14 +3,14 @@
 .SendmailREnv$options <- list()
 
 .update_list <- function (x, val) {
-  if (is.null(x)) 
+  if (is.null(x))
     x <- list()
-  modifyList(x, val)
+  utils::modifyList(x, val)
 }
 
 ##' Specify global sendmail options so that subsequent calls to
 ##' \code{sendmail()} do not have to set them in the \code{control}
-##' argument.  
+##' argument.
 ##'
 ##' List of options:
 ##' \itemize{
@@ -31,23 +31,23 @@
 ##' sorted by name. For \code{sendmail_options(name)}, a list of length
 ##' one containing the set value, or 'NULL' if it is unset.  For uses
 ##' setting one or more options, a list with the previous values of
-##' the options changed (returned invisibly).  
-##' 
+##' the options changed (returned invisibly).
+##'
 ##' @title Set package specific options.
 ##' @export
 ##' @author Olaf Mersmann \email{olafm@@datensplitter.net}
 sendmail_options <- function(...) {
   new <- list(...)
-  if (is.null(names(new)) && length(new) == 1 && is.list(new[[1]])) 
+  if (is.null(names(new)) && length(new) == 1 && is.list(new[[1]]))
     new <- new[[1]]
   old <- .SendmailREnv$options
-  if (length(new) == 0) 
+  if (length(new) == 0)
     return(old)
   nm <- names(new)
-  if (is.null(nm)) 
+  if (is.null(nm))
     return(old[unlist(new)])
   isNamed <- nm != ""
-  if (any(!isNamed)) 
+  if (any(!isNamed))
     nm[!isNamed] <- unlist(new[!isNamed])
   retVal <- old[nm]
   names(retVal) <- nm
