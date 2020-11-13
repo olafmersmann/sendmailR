@@ -35,7 +35,7 @@
                   "Content-Disposition"=sprintf("%s; filename=%s",
                     disposition, name),
                   "Content-Transfer-Encoding"="base64")
-  
+
   .mime_part(headers=headers, text=text)
 }
 
@@ -43,7 +43,7 @@
   fn <- tempfile()
   device(file=fn, ...)
   print(plt)
-  dev.off()
+  grDevices::dev.off()
   ## FIXME: Guess content type from device!
   res <- .file_attachment(fn, name, type="application/pdf")
   file.remove(fn)
@@ -94,10 +94,11 @@ mime_part.default <- function(x, name, ...) {
 ##'   \code{pdf}.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
-##' 
+
+##' @importFrom grDevices pdf
 ##' @method mime_part trellis
 ##' @export
-mime_part.trellis <- function(x, name=deparse(substitute(x)), device=pdf, ...)
+mime_part.trellis <- function(x, name=deparse(substitute(x)), device = pdf, ...)
   .plot_attachment(x, name=name, device=device, ...)
 
 ##' Creates a MIME part from a ggplot2 plot object
@@ -111,10 +112,11 @@ mime_part.trellis <- function(x, name=deparse(substitute(x)), device=pdf, ...)
 ##'   \code{pdf}.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
-##' 
+##'
+##' @importFrom grDevices pdf
 ##' @method mime_part ggplot
 ##' @export
-mime_part.ggplot <- function(x, name=deparse(substitute(x)), device=pdf, ...)
+mime_part.ggplot <- function(x, name=deparse(substitute(x)), device = pdf, ...)
   .plot_attachment(x, name=name, device=device, ...)
 
 ##' Create a MIME part from a matrix.
@@ -123,40 +125,51 @@ mime_part.ggplot <- function(x, name=deparse(substitute(x)), device=pdf, ...)
 ##' @param name Basename of file attachment that is generated.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object
-##' 
+##'
 ##' @method mime_part matrix
 ##' @export
 mime_part.matrix <- function(x, name=deparse(substitute(x)), ...) {
   f <- tempfile()
   on.exit(file.remove(f))
-  write.table(x, file=f, ...)
+  utils::write.table(x, file=f, ...)
   .file_attachment(f, name=sprintf("%s.txt", name), type="text/plain")
 }
 
 ##' Create a MIME part from a \code{data.frame}.
-##' 
+##'
 ##' @param x A \code{data.frame}.
 ##' @param name Basename of file attachment that is generated.
+##' @param filename_extension Filename extension (i.e., the suffix) to be used
+##'   for the attached file.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
 ##'
 ##' @method mime_part data.frame
 ##' @export
-mime_part.data.frame <- function(x, name=deparse(substitute(x)), ...) {
+mime_part.data.frame <- function(
+  x
+  , name = deparse(substitute(x))
+  , filename_extension = ".txt"
+  , ...
+) {
+
   f <- tempfile()
   on.exit(file.remove(f))
-  write.table(x, file=f, ...)
-  .file_attachment(f, name=sprintf("%s.txt", name), type="text/plain")
+
+  utils::write.table(x, file = f, ...)
+
+  name <- sprintf("%s%s", name, filename_extension)
+  .file_attachment(f, name = name, type = "text/plain")
 }
 
 ##' Create a MIME part from a character string. If the string matches
 ##' a filename, a MIME part containing that file is returned instead.
-##' 
+##'
 ##' @param x Character string, possibly a filename.
 ##' @param name Name of attachment.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
-##' 
+##'
 ##' @method mime_part character
 ##' @export
 mime_part.character <- function(x, name, ...) {
