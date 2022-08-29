@@ -13,6 +13,17 @@
            tz="UTC", use.tz=TRUE)
 }
 
+.rfc2047_subject <- function(subject) {
+  subject <- enc2utf8(subject)
+  prefix <- "=?"
+  charset <- "UTF-8?"
+  encoding <- "B?"
+  suffix <- "?="
+  subject <- charToRaw(subject)
+  subject <- base64enc::base64encode(subject, linewidth = 63)
+  paste(paste0(prefix, charset, encoding, subject, suffix), collapse = " ")
+}
+
 .get_recipients <- function(headers) {
   res <- headers$To
   if (!is.null(headers$Cc)) {
@@ -39,7 +50,7 @@
   ## Do not include BCC recipients in headers, after all, it is a
   ## _blind_ carbon-copy.
   headers$Bcc <- NULL
-  
+
   writeLines(paste(names(headers), unlist(headers), sep=": "),
              sock, sep="\r\n")
   writeLines("", sock, sep="\r\n")
@@ -61,7 +72,7 @@
 
 .smtp_submit_mail <- function(server, port, headers, msg, verbose=FALSE) {
   stopifnot(is.character(headers$From))
-  
+
   wait_for <- function(lcode) {
     done <- FALSE
     while (!done) {
@@ -80,7 +91,7 @@
         else
           message("Unknown SMTP code: ", code)
       }
-      
+
     }
     return(list(code=code, msg=msg))
   }
@@ -120,9 +131,9 @@
     message(">> <message data>")
 
   .write_mail(headers, msg, sock)
-  
+
   writeLines(".", sock, sep="\r\n")
-  
+
   wait_for(250)
   ## << 250 2.0.0 Ok: queued as XXXXXXXX
   ## >> QUIT
@@ -149,7 +160,7 @@
 ##'
 ##' @seealso \code{\link{mime_part}} for a way to add attachments.
 ##' @keywords utilities
-##' 
+##'
 ##' @examples
 ##' \dontrun{
 ##' from <- sprintf("<sendmailR@@\\%s>", Sys.info()[4])
@@ -168,26 +179,31 @@ sendmail <- function(from, to, subject, msg, cc, bcc, ...,
   stopifnot(is.list(headers), is.list(control))
   if (length(from) != 1)
     stop("'from' must be a single address.")
-  
+
   if (length(to) < 1)
     stop("'to' must contain at least one address.")
-  
+
   get_value <- function(n, default="") {
     if (n %in% names(control)) {
       return(control[[n]])
     } else if (n %in% names(.SendmailREnv$options)) {
       return(.SendmailREnv$options[[n]])
     } else {
-      return(default)      
+      return(default)
     }
   }
-  
+
   headers$From <- from
   headers$To <- to
-  if (!missing(cc)) 
+  if (!missing(cc))
     headers$Cc <- cc
   if (!missing(bcc))
     headers$Bcc <- bcc
+
+  ## Encode subject if it contains none ASCII characters
+  if (grepl("[^ -~]", subject)) {
+    subject <- .rfc2047_subject(subject)
+  }
   headers$Subject <- subject
 
   ## Add Date header if not explicitly set. This fixes the annoyance,
@@ -195,13 +211,13 @@ sendmail <- function(from, to, subject, msg, cc, bcc, ...,
   ## do not have a Date header.
   if (is.null(headers$Date))
     headers$Date <- .rfc2822_date()
-  
+
   transport <- get_value("transport", "smtp")
   verbose <- get_value("verbose", FALSE)
   if (transport == "smtp") {
     server <- get_value("smtpServer", "localhost")
     port <- get_value("smtpPort", 25)
-    
+
     .smtp_submit_mail(server, port, headers, msg, verbose)
   } else if (transport == "debug") {
     message("Recipients: ", paste(.get_recipients(headers), collapse=", "))
