@@ -1,14 +1,12 @@
 # sendmailR
-Package contains a simple SMTP client which provides a portable solution for sending email, including attachment, from within R.
 
-## Install development version
+<!-- badges: start -->
+[![OSS Lifecycle](https://img.shields.io/osslifecycle/olafmersmann/sendmailR)](https://lifecycle.r-lib.org/articles/stages.html)
+[![CRAN status](https://www.r-pkg.org/badges/version/sendmailR)](https://CRAN.R-project.org/package=sendmailR)
+[![CRAN Downloads](http://cranlogs.r-pkg.org/badges/sendmailR)](http://cran.rstudio.com/web/packages/sendmailR/index.html)
+<!-- badges: end -->
 
-From time to time I release development version to my private R package repository. 
-To install from this repository run:
-
-```splus
-install.packages("sendmailR", repos="http://olafmersmann.github.io/drat")
-```
+Package contains a simple SMTP client which provides a portable solution for sending email, including attachment, from within [R].
 
 ## Install from github
 
@@ -20,5 +18,4 @@ library("devtools")
 install_github("olafmersmann/sendmailR")
 ```
 
-[![CRAN Status Badge](http://www.r-pkg.org/badges/version/sendmailR)](http://cran.r-project.org/web/packages/sendmailR)
-[![CRAN Downloads](http://cranlogs.r-pkg.org/badges/sendmailR)](http://cran.rstudio.com/web/packages/sendmailR/index.html)
+[R]: https://www.r-project.org/
