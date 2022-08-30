@@ -7,10 +7,12 @@ Description: Package contains a simple SMTP client which provides a
 Authors@R: c(
         person("Olaf", "Mersmann", role=c("aut", "cre"),
                comment = c(ORCID = "0000-0002-7720-4939"),
-               email="olafm@p-value.net"),
+               email = "olafm@p-value.net"),
         person("Quinn", "Weber", role="ctb"),
-        person("Marius", "Barth", role = "ctb", comment = c(ORCID = "0000-0002-3421-6665")),
-        person("Are", "Edvardsen", role = "ctb")
+        person("Marius", "Barth", role = "ctb",
+               comment = c(ORCID = "0000-0002-3421-6665")),
+        person("Are", "Edvardsen", role = "ctb",
+               comment = c(ORCID = "0000-0002-5210-3656"))
         )
 URL: https://github.com/olafmersmann/sendmailR
 BugReports: https://github.com/olafmersmann/sendmailR/issues
