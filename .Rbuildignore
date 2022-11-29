@@ -3,3 +3,5 @@
 ^examples
 OSSMETADATA
 .github/
+^CRAN-SUBMISSION$
+^cran-comments\.md$
