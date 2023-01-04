@@ -176,9 +176,26 @@ mime_part.character <- function(x, name, ...) {
   if (length(x) == 1 && file.exists(x)) {
     .file_attachment(x, name, ...)
   } else {
-     .mime_part(headers=list(
-                 "Content-Type"="text/plain",
-                 "Content-Disposition"="inline"),
-               text=paste(x, collapse="\r\n"))
+
+    # Default content_type (backward compatibillity)
+    content_type <- "text/plain"
+
+    # If Encoding is set then use this
+    # R will always use ASCII over UTF-8 if possible
+    # ASCII is reported as unknown
+    encoding <- setdiff(Encoding(x), "unknown")
+
+    if (length(encoding == 1))
+      content_type <- paste0("text/plain; charset=", encoding, "; format=flowed")
+
+    # If all character strings are valid UTF-8 this takes precedent
+    # Normally all character strings in R are either ASCII or UTF-8 which are both valid.
+    if (all(validUTF8(x)))
+      content_type <- "text/plain; charset=UTF-8; format=flowed"
+
+     .mime_part(headers = list(
+                 "Content-Type" = content_type,
+                 "Content-Disposition" = "inline"),
+               text = paste(x, collapse = "\r\n"))
   }
 }
