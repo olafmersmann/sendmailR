@@ -199,3 +199,45 @@ mime_part.character <- function(x, name, ...) {
                text = paste(x, collapse = "\r\n"))
   }
 }
+
+##' Create a MIME part from a character string containing HTML. If the string matches
+##' a filename the file is read and inserted as an inline character MIME part.
+##'
+##' @title Create an inline HTML MIME Part
+##'
+##' @param x Character string, vector/list of character strings 
+##'   or path to html file.
+##' @param ... Ignored.
+##' @return An S3 \code{mime_part} object.
+##'
+##' @examples
+##' \dontrun{
+##' sendmail(
+##'   from="from@example.org",
+##'   to="to1@example.org",
+##'   subject="inline HTML",
+##'   msg=mime_part_html("Hello<br>World"),
+##'   control=list(smtpServer="ASPMX.L.GOOGLE.COM")
+##' )
+##'
+##' sendmail(
+##'   from="from@example.org",
+##'   to="to1@example.org",
+##'   subject="inline HTML",
+##'   msg=mime_part_html("out/report.html"),
+##'   control=list(smtpServer="ASPMX.L.GOOGLE.COM")
+##' )
+##' }
+##'
+##' @export
+mime_part_html <- function(x, ...) {
+
+  if (length(x) == 1 && file.exists(x)) {
+    x <- readLines(x)
+  }
+
+  .mime_part(headers = list(
+    "Content-Type" = "text/html; charset=UTF-8",
+    "Content-Disposition" = "inline"),
+    text = paste(x, collapse = ""))
+}
