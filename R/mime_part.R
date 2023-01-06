@@ -250,8 +250,8 @@ mime_part_html <- function(x, ...) {
     x <- readLines(x)
   }
 
-  .mime_part(headers = list(
-    "Content-Type" = "text/html; charset=UTF-8",
-    "Content-Disposition" = "inline"),
-    text = paste(x, collapse = ""))
+  # For compatibility with xml2::read_html()
+  if (is.list(x)) x <- as.character(x)
+
+  mime_part.character(x, type = "text/html")
 }
