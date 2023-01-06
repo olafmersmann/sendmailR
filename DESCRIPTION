@@ -12,7 +12,9 @@ Authors@R: c(
         person("Marius", "Barth", role = "ctb",
                comment = c(ORCID = "0000-0002-3421-6665")),
         person("Are", "Edvardsen", role = "ctb",
-               comment = c(ORCID = "0000-0002-5210-3656"))
+               comment = c(ORCID = "0000-0002-5210-3656")),
+        person("Alexander", "Bartel", role = "ctb", 
+               comment = c(ORCID = "0000-0002-1280-6138"))
         )
 URL: https://github.com/olafmersmann/sendmailR
 BugReports: https://github.com/olafmersmann/sendmailR/issues
@@ -21,4 +23,4 @@ Imports: base64enc
 License: GPL-2
 LazyData: yes
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.2

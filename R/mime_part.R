@@ -30,7 +30,7 @@
   if (missing(name))
     name <- basename(fn)
 
-  text <- base64encode(fn, linewidth=72, newline="\n")
+  text <- base64enc::base64encode(fn, linewidth=72, newline="\n")
   headers <- list("Content-Type"=type,
                   "Content-Disposition"=sprintf("%s; filename=%s",
                     disposition, name),
@@ -50,6 +50,30 @@
   res
 }
 
+.generate_charset_convert_utf8 <- function(x) {
+
+  e <- Encoding(x)
+
+  # 1 If all character strings are valid utf-8 set charset utf-8
+  if (all(validUTF8(x))) {
+    result <- list(x = x,
+               charset = "; charset=utf-8")
+    return(result)
+  }
+
+  # 2 If there is any non utf-8 encoded text, convert to utf-8
+  if (any(e != "unknown")) {
+    result <- list(x = enc2utf8(x),
+                   charset = "; charset=utf-8")
+    return(result)
+  }
+
+  # 3 Default content_type (backward compatibility)
+  result <- list(x = x,
+                 charset = "")
+  return(result)
+}
+
 ##' Create a MIME part
 ##'
 ##' @param x Object to include
@@ -58,6 +82,10 @@
 ##' @param ... Possible further arguments for \code{mime_part}
 ##'   implementations.
 ##' @return An S3 \code{mime_part} object.
+##' @seealso \code{\link{mime_part.character}}, \code{\link{mime_part_html}}, 
+##' \code{\link{mime_part.data.frame}}, \code{\link{mime_part.matrix}}, 
+##' \code{\link{mime_part.ggplot}}, \code{\link{mime_part.trellis}}
+##' 
 ##' @export
 mime_part <- function(x, name, ...)
   UseMethod("mime_part", x)
@@ -165,20 +193,74 @@ mime_part.data.frame <- function(
 ##' Create a MIME part from a character string. If the string matches
 ##' a filename, a MIME part containing that file is returned instead.
 ##'
+##' @title Create an inline character MIME Part
+##'
 ##' @param x Character string, possibly a filename.
 ##' @param name Name of attachment.
+##' @param type Content type of inline text. Defaults to "text/plain".
+##' @param flowed Should "format=flowed" be added to the content header.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
 ##'
 ##' @method mime_part character
 ##' @export
-mime_part.character <- function(x, name, ...) {
+##' @seealso \code{\link{mime_part_html}} for adding inline HTML
+mime_part.character <- function(x, name, type = "text/plain", flowed = FALSE, ...) {
   if (length(x) == 1 && file.exists(x)) {
     .file_attachment(x, name, ...)
   } else {
-     .mime_part(headers=list(
-                 "Content-Type"="text/plain",
-                 "Content-Disposition"="inline"),
-               text=paste(x, collapse="\r\n"))
+
+    res <- .generate_charset_convert_utf8(x)
+    format_flowed <- ifelse(flowed, "; format=flowed", "")
+
+    # e.g. Content-Type: text/plain; charset=utf-8
+    content_type <- paste0(type, res$charset, format_flowed)
+
+    .mime_part(headers = list(
+               "Content-Type" = content_type,
+               "Content-Disposition" = "inline"),
+             text = paste(res$x, collapse = "\r\n"))
   }
+}
+
+##' Create a MIME part from a character string containing HTML. If the string matches
+##' a filename the file is read and inserted as an inline character MIME part.
+##'
+##' @title Create an inline HTML MIME Part
+##'
+##' @param x Character string, vector/list of character strings
+##'   or path to html file.
+##' @param ... Ignored.
+##' @return An S3 \code{mime_part} object.
+##'
+##' @examples
+##' \dontrun{
+##' sendmail(
+##'   from="from@example.org",
+##'   to="to1@example.org",
+##'   subject="inline HTML",
+##'   msg=mime_part_html("Hello<br>World"),
+##'   control=list(smtpServer="ASPMX.L.GOOGLE.COM")
+##' )
+##'
+##' sendmail(
+##'   from="from@example.org",
+##'   to="to1@example.org",
+##'   subject="inline HTML",
+##'   msg=mime_part_html("out/report.html"),
+##'   control=list(smtpServer="ASPMX.L.GOOGLE.COM")
+##' )
+##' }
+##'
+##' @export
+mime_part_html <- function(x, ...) {
+
+  if (length(x) == 1 && file.exists(x)) {
+    x <- readLines(x)
+  }
+
+  # For compatibility with xml2::read_html()
+  if (is.list(x)) x <- as.character(x)
+
+  mime_part.character(x, type = "text/html")
 }

@@ -21,3 +21,8 @@ An S3 \code{mime_part} object.
 \description{
 Create a MIME part
 }
+\seealso{
+\code{\link{mime_part.character}}, \code{\link{mime_part_html}}, 
+\code{\link{mime_part.data.frame}}, \code{\link{mime_part.matrix}}, 
+\code{\link{mime_part.ggplot}}, \code{\link{mime_part.trellis}}
+}
