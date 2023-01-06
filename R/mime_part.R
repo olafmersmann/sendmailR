@@ -30,7 +30,7 @@
   if (missing(name))
     name <- basename(fn)
 
-  text <- base64encode(fn, linewidth=72, newline="\n")
+  text <- base64enc::base64encode(fn, linewidth=72, newline="\n")
   headers <- list("Content-Type"=type,
                   "Content-Disposition"=sprintf("%s; filename=%s",
                     disposition, name),
@@ -82,6 +82,10 @@
 ##' @param ... Possible further arguments for \code{mime_part}
 ##'   implementations.
 ##' @return An S3 \code{mime_part} object.
+##' @seealso \code{\link{mime_part.character}}, \code{\link{mime_part_html}}, 
+##' \code{\link{mime_part.data.frame}}, \code{\link{mime_part.matrix}}, 
+##' \code{\link{mime_part.ggplot}}, \code{\link{mime_part.trellis}}
+##' 
 ##' @export
 mime_part <- function(x, name, ...)
   UseMethod("mime_part", x)
@@ -189,13 +193,18 @@ mime_part.data.frame <- function(
 ##' Create a MIME part from a character string. If the string matches
 ##' a filename, a MIME part containing that file is returned instead.
 ##'
+##' @title Create an inline character MIME Part
+##'
 ##' @param x Character string, possibly a filename.
 ##' @param name Name of attachment.
+##' @param type Content type of inline text. Defaults to "text/plain".
+##' @param flowed Should "format=flowed" be added to the content header.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
 ##'
 ##' @method mime_part character
 ##' @export
+##' @seealso \code{\link{mime_part_html}} for adding inline HTML
 mime_part.character <- function(x, name, type = "text/plain", flowed = FALSE, ...) {
   if (length(x) == 1 && file.exists(x)) {
     .file_attachment(x, name, ...)
@@ -219,7 +228,7 @@ mime_part.character <- function(x, name, type = "text/plain", flowed = FALSE, ..
 ##'
 ##' @title Create an inline HTML MIME Part
 ##'
-##' @param x Character string, vector/list of character strings 
+##' @param x Character string, vector/list of character strings
 ##'   or path to html file.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.

@@ -2,15 +2,18 @@
 % Please edit documentation in R/mime_part.R
 \name{mime_part.character}
 \alias{mime_part.character}
-\title{Create a MIME part from a character string. If the string matches
-a filename, a MIME part containing that file is returned instead.}
+\title{Create an inline character MIME Part}
 \usage{
-\method{mime_part}{character}(x, name, ...)
+\method{mime_part}{character}(x, name, type = "text/plain", flowed = FALSE, ...)
 }
 \arguments{
 \item{x}{Character string, possibly a filename.}
 
 \item{name}{Name of attachment.}
+
+\item{type}{Content type of inline text. Defaults to "text/plain".}
+
+\item{flowed}{Should "format=flowed" be added to the content header.}
 
 \item{...}{Ignored.}
 }
@@ -20,4 +23,7 @@ An S3 \code{mime_part} object.
 \description{
 Create a MIME part from a character string. If the string matches
 a filename, a MIME part containing that file is returned instead.
+}
+\seealso{
+\code{\link{mime_part_html}} for adding inline HTML
 }

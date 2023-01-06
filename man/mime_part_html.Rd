@@ -7,7 +7,7 @@
 mime_part_html(x, ...)
 }
 \arguments{
-\item{x}{Character string, vector/list of character strings 
+\item{x}{Character string, vector/list of character strings
 or path to html file.}
 
 \item{...}{Ignored.}

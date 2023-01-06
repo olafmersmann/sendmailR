@@ -63,6 +63,12 @@ sendmail(from="from@example.org",
 
 sendmail(from="from@example.org",
          to="to1@example.org",
+         subject="UTF-8 test",
+         msg=mime_part(c("test", "tεst", "täst", "tëst", "的", "؈"), flowed = TRUE),
+         control=list(transport="debug"))
+
+sendmail(from="from@example.org",
+         to="to1@example.org",
          subject="latin1 test",
          msg=mime_part(iconv("täst", to = "latin1")),
          control=list(transport="debug"))
