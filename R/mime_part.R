@@ -50,6 +50,30 @@
   res
 }
 
+.generate_charset_convert_utf8 <- function(x) {
+
+  e <- Encoding(x)
+
+  # 1 If all character strings are valid utf-8 set charset utf-8
+  if (all(validUTF8(x))) {
+    result <- list(x = x,
+               charset = "; charset=utf-8")
+    return(result)
+  }
+
+  # 2 If there is any non utf-8 encoded text, convert to utf-8
+  if (any(e != "unknown")) {
+    result <- list(x = enc2utf8(x),
+                   charset = "; charset=utf-8")
+    return(result)
+  }
+
+  # 3 Default content_type (backward compatibility)
+  result <- list(x = x,
+                 charset = "")
+  return(result)
+}
+
 ##' Create a MIME part
 ##'
 ##' @param x Object to include
@@ -172,31 +196,21 @@ mime_part.data.frame <- function(
 ##'
 ##' @method mime_part character
 ##' @export
-mime_part.character <- function(x, name, ...) {
+mime_part.character <- function(x, name, type = "text/plain", flowed = FALSE, ...) {
   if (length(x) == 1 && file.exists(x)) {
     .file_attachment(x, name, ...)
   } else {
 
-    # Default content_type (backward compatibillity)
-    content_type <- "text/plain"
+    res <- .generate_charset_convert_utf8(x)
+    format_flowed <- ifelse(flowed, "; format=flowed", "")
 
-    # If Encoding is set then use this
-    # R will always use ASCII over UTF-8 if possible
-    # ASCII is reported as unknown
-    encoding <- setdiff(Encoding(x), "unknown")
+    # e.g. Content-Type: text/plain; charset=utf-8
+    content_type <- paste0(type, res$charset, format_flowed)
 
-    if (length(encoding == 1))
-      content_type <- paste0("text/plain; charset=", encoding, "; format=flowed")
-
-    # If all character strings are valid UTF-8 this takes precedent
-    # Normally all character strings in R are either ASCII or UTF-8 which are both valid.
-    if (all(validUTF8(x)))
-      content_type <- "text/plain; charset=UTF-8; format=flowed"
-
-     .mime_part(headers = list(
-                 "Content-Type" = content_type,
-                 "Content-Disposition" = "inline"),
-               text = paste(x, collapse = "\r\n"))
+    .mime_part(headers = list(
+               "Content-Type" = content_type,
+               "Content-Disposition" = "inline"),
+             text = paste(res$x, collapse = "\r\n"))
   }
 }
 
