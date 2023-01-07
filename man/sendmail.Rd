@@ -12,8 +12,11 @@ sendmail(
   cc,
   bcc,
   ...,
+  use_curl = FALSE,
+  use_ssl = "force",
   headers = list(),
-  control = list()
+  control = list(),
+  curlopts = list()
 )
 }
 \arguments{
@@ -32,10 +35,20 @@ sendmail(
 
 \item{\dots}{...}
 
+\item{use_curl}{Use curl for mail transport. Enable if you need STARTTLS/SSL 
+and/or SMTP authentication. See \code{\link[curl]{send_mail}}.}
+
+\item{use_ssl}{Only used with curl. Defaults to "force". 
+For more information see \code{\link[curl]{send_mail}}.}
+
 \item{headers}{Any other headers to include.}
 
 \item{control}{List of SMTP server settings. Valid values are the
 possible options for \code{\link{sendmail_options}}.}
+
+\item{curlopts}{Options passed to curl if using the curl backend. 
+For authentication pass a list with \code{username} and \code{password}.
+For available options run \code{\link[curl]{curl_options}}.}
 }
 \description{
 Simplistic sendmail utility for R. Uses SMTP to submit a message
@@ -49,10 +62,20 @@ subject <- "Hello from R"
 body <- list("It works!", mime_part(iris))
 sendmail(from, to, subject, body,
          control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
-}
 
+sendmail(from="from@example.org",
+  to=c("to1@example.org", "to2@example.org"),
+  subject="SMTP auth test",
+  msg=mime_part("This message was send using sendmailR and curl."),
+  use_curl = TRUE,
+  curlopts = list(username = "foo", password = "bar"),
+  control=list(smtpServer="smtp://smtp.gmail.com:587", verbose = TRUE)
+)
+}
 }
 \seealso{
 \code{\link{mime_part}} for a way to add attachments.
+
+\code{\link[curl]{send_mail}} for curl SMTP URL specification.
 }
 \keyword{utilities}

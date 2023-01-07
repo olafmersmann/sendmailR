@@ -141,6 +141,39 @@
   send_command("QUIT", 221)
 }
 
+.smtp_submit_mail_curl <- function(smtp_server, headers, curlopts = list(), 
+                                   msg, verbose=FALSE, use_ssl = "force") {
+
+  stopifnot(is.character(headers$From))
+  
+  # remove options to prevent multiple matching arguments
+  curlopts <- setdiff(curlopts, 
+                      c("smtp_server", "mail_from", "mail_rcpt", 
+                        "message", "use_ssl", "verbose"))
+
+  from <- headers$From
+  to <- .get_recipients(headers)
+
+  # use temporary file for .write_mail
+  sock <- file(tempfile(), open = "a+")
+  .write_mail(headers, msg, sock)
+  msg <- readLines(sock)
+  # Delete temp file
+  close(sock)
+  unlink(sock)
+
+  do.call(curl::send_mail,
+    c(list(
+      mail_from = from,
+      mail_rcpt = to,
+      message = msg,
+      use_ssl = use_ssl,
+      verbose = verbose,
+      smtp_server = smtp_server),
+    curlopts)
+  )
+}
+
 ##' Simplistic sendmail utility for R. Uses SMTP to submit a message
 ##' to a local SMTP server.
 ##'
@@ -154,11 +187,20 @@
 ##' @param msg Body text of message or a list containing
 ##'   \code{\link{mime_part}} objects.
 ##' @param \dots ...
+##' @param use_curl Use curl for mail transport. Enable if you need STARTTLS/SSL 
+##' and/or SMTP authentication. See \code{\link[curl]{send_mail}}.
+##' @param use_ssl Only used with curl. Defaults to "force". 
+##' For more information see \code{\link[curl]{send_mail}}.
 ##' @param headers Any other headers to include.
 ##' @param control List of SMTP server settings. Valid values are the
 ##'   possible options for \code{\link{sendmail_options}}.
+##' @param curlopts Options passed to curl if using the curl backend. 
+##' For authentication pass a list with \code{username} and \code{password}.
+##' For available options run \code{\link[curl]{curl_options}}. 
 ##'
 ##' @seealso \code{\link{mime_part}} for a way to add attachments.
+##' 
+##' \code{\link[curl]{send_mail}} for curl SMTP URL specification.
 ##' @keywords utilities
 ##'
 ##' @examples
@@ -169,12 +211,22 @@
 ##' body <- list("It works!", mime_part(iris))
 ##' sendmail(from, to, subject, body,
 ##'          control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
+##' 
+##' sendmail(from="from@example.org",
+##'   to=c("to1@example.org", "to2@example.org"),
+##'   subject="SMTP auth test",
+##'   msg=mime_part("This message was send using sendmailR and curl."),
+##'   use_curl = TRUE,
+##'   curlopts = list(username = "foo", password = "bar"),
+##'   control=list(smtpServer="smtp://smtp.gmail.com:587", verbose = TRUE)
+##' )
 ##' }
-##'
 ##' @export
 sendmail <- function(from, to, subject, msg, cc, bcc, ...,
+                     use_curl = FALSE, use_ssl = "force",
                      headers=list(),
-                     control=list()) {
+                     control=list(),
+                     curlopts=list()) {
   ## Argument checks:
   stopifnot(is.list(headers), is.list(control))
   if (length(from) != 1)
@@ -218,7 +270,17 @@ sendmail <- function(from, to, subject, msg, cc, bcc, ...,
     server <- get_value("smtpServer", "localhost")
     port <- get_value("smtpPort", 25)
 
-    .smtp_submit_mail(server, port, headers, msg, verbose)
+    if (use_curl) {
+      # Add custom port to URL if none is specified using domain:port
+      if (!grepl(":", server) & (port != 25)) server <- paste0(server, ":", port)
+      
+      .smtp_submit_mail_curl(server, headers, curlopts, msg, 
+                             verbose = verbose, use_ssl = use_ssl)
+    } else {
+      # Default transport
+      .smtp_submit_mail(server, port, headers, msg, verbose)
+    }
+    
   } else if (transport == "debug") {
     message("Recipients: ", paste(.get_recipients(headers), collapse=", "))
     .write_mail(headers, msg, stderr())
