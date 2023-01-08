@@ -19,8 +19,10 @@ Authors@R: c(
 URL: https://github.com/olafmersmann/sendmailR
 BugReports: https://github.com/olafmersmann/sendmailR/issues
 Depends: R (>= 3.0.0)
-Imports: base64enc, curl (>= 4.0)
+Imports: base64enc
+Suggests: curl (>= 4.0), knitr, rmarkdown, htmltools
 License: GPL-2
 LazyData: yes
 Encoding: UTF-8
 RoxygenNote: 7.2.2
+VignetteBuilder: knitr

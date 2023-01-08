@@ -1,0 +1,120 @@
+---
+title: "Sending HTML reports inline and as attachment created with knitr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Sending HTML reports inline and as attachment created with knitr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 5, warning = FALSE, message = FALSE)
+if (!requireNamespace("rmarkdown", quietly = TRUE) ||
+    !requireNamespace("htmltools", quietly = TRUE)) {
+  knitr::opts_chunk$set(eval = FALSE, tidy = FALSE)
+}
+```
+
+This file shows a typical workflow for knitting *.Rmd* documents and sending them per E-Mail.
+
+First we have our **my_file.Rmd** which looks like this:
+
+````{=html}
+<pre>
+---
+title: '&#32;'
+output: 
+  html_document:
+    theme: null
+    highlight: null
+    mathjax: null
+---
+
+Hello everyone,\n
+
+here is a calculation.
+
+**2+2 =**
+
+`​``{r echo=FALSE}
+2+2
+`​``
+
+All the best
+</pre>
+````
+
+```{r include=FALSE}
+test.Rmd <- "---
+title: '&#32;'
+output: 
+  html_document:
+    theme: null
+    highlight: null
+    mathjax: null
+---
+
+Hello everyone,\n
+
+here is a calculation.
+
+**2+2 =**
+\```{r echo=FALSE}
+2+2
+
+\```
+
+All the best
+"
+writeLines(test.Rmd, con = "my_file.Rmd")
+```
+
+## Render your rmarkdown file
+
+```{r echo=TRUE, results = 'hide'}
+htmlout <- tempfile(fileext = ".html")
+
+rmarkdown::render(
+      input = "my_file.Rmd",
+      intermediates_dir = ".",
+      output_file = htmlout,
+    )
+```
+
+## This is the resulting HTML document
+
+```{r echo=FALSE, results='asis'}
+unlink("my_file.Rmd")
+htmltools::includeHTML(htmlout)
+```
+
+------------------------------------------------------------------------
+
+## Sending the html file per E-Mail
+
+We can now send the the resulting html file as A) an file attachment or B) inline HTML.
+
+### A) File attachment
+
+```{r}
+library(sendmailR)
+sendmail(from="from@example.org",
+         to="to1@example.org",
+         subject="File attachment",
+         msg=c(
+           mime_part("Hello everyone,\n here is the newest report.\n Bye"),
+           mime_part(htmlout, name = "report.html")),
+         engine = "debug")
+
+```
+
+### B) Inline HTML
+
+```{r message=TRUE}
+sendmail(from="from@example.org",
+       to="to1@example.org",
+       subject="Inline HTML",
+       msg=mime_part_html(htmlout),
+       engine = "debug")
+
+```
