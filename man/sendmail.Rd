@@ -15,7 +15,7 @@ sendmail(
   engine = c("internal", "curl", "debug"),
   headers = list(),
   control = list(),
-  engineopts = list(use_ssl = "force")
+  engineopts = list()
 )
 }
 \arguments{
