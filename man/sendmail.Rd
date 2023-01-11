@@ -12,8 +12,10 @@ sendmail(
   cc,
   bcc,
   ...,
+  engine = c("internal", "curl", "debug"),
   headers = list(),
-  control = list()
+  control = list(),
+  engineopts = list(use_ssl = "force")
 )
 }
 \arguments{
@@ -32,10 +34,23 @@ sendmail(
 
 \item{\dots}{...}
 
+\item{engine}{One of: \itemize{
+\item{\code{"internal"} for the internal smtp transport (default).}
+\item{\code{"curl"} for the use of curl for transport. Enable if you need STARTTLS/SSL
+and/or SMTP authentication. See \code{curl::\link[curl]{send_mail}}.}
+\item{\code{"debug"} sendmail returns a RFC2822 formatted email message without sending it.}
+}}
+
 \item{headers}{Any other headers to include.}
 
 \item{control}{List of SMTP server settings. Valid values are the
 possible options for \code{\link{sendmail_options}}.}
+
+\item{engineopts}{Options passed to curl if using the curl backend. \itemize{
+\item{For authentication pass a list with \code{username} and \code{password}.}
+\item{\code{use_ssl} defaults to "force" if unset.}
+\item{For available options run \code{curl::\link[curl]{curl_options}}.}
+}}
 }
 \description{
 Simplistic sendmail utility for R. Uses SMTP to submit a message
@@ -49,10 +64,20 @@ subject <- "Hello from R"
 body <- list("It works!", mime_part(iris))
 sendmail(from, to, subject, body,
          control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
-}
 
+sendmail(from="from@example.org",
+  to=c("to1@example.org", "to2@example.org"),
+  subject="SMTP auth test",
+  msg=mime_part("This message was send using sendmailR and curl."),
+  engine = "curl",
+  engineopts = list(username = "foo", password = "bar"),
+  control=list(smtpServer="smtp://smtp.gmail.com:587", verbose = TRUE)
+)
+}
 }
 \seealso{
 \code{\link{mime_part}} for a way to add attachments.
+
+\code{curl::\link[curl]{send_mail}} for curl SMTP URL specification.
 }
 \keyword{utilities}

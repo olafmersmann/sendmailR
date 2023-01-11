@@ -1,9 +1,9 @@
 Package: sendmailR
 Version: 1.3-2
 Title: Send Email Using R
-Description: Package contains a simple SMTP client which provides a
-        portable solution for sending email, including attachment, from
-        within R.
+Description: Package contains a simple SMTP client with minimal dependencies which 
+        provides a portable solution for sending email, including file attachments and inline html reports, 
+        from within R. SMTP Authentication and SSL/STARTTLS is implemented using curl.
 Authors@R: c(
         person("Olaf", "Mersmann", role=c("aut", "cre"),
                comment = c(ORCID = "0000-0002-7720-4939"),
@@ -20,7 +20,9 @@ URL: https://github.com/olafmersmann/sendmailR
 BugReports: https://github.com/olafmersmann/sendmailR/issues
 Depends: R (>= 3.0.0)
 Imports: base64enc
+Suggests: curl (>= 4.0), knitr, rmarkdown, htmltools
 License: GPL-2
 LazyData: yes
 Encoding: UTF-8
 RoxygenNote: 7.2.2
+VignetteBuilder: knitr

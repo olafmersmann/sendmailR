@@ -25,6 +25,7 @@
 }
 
 .get_recipients <- function(headers) {
+  # TODO: parse e-mail from "name <a@b.com>"
   res <- headers$To
   if (!is.null(headers$Cc)) {
     res <- c(res, headers$Cc)
@@ -141,6 +142,45 @@
   send_command("QUIT", 221)
 }
 
+.smtp_submit_mail_curl <- function(smtp_server, headers, curlopts = list(),
+                                   msg, verbose = FALSE) {
+  # Check if curl is installed.
+  if (!requireNamespace("curl", quietly = TRUE)) {
+    stop("sendmail: engine = \"curl\" needs the curl package installed. 
+         Please run: install.packages(\"curl\")", call. = FALSE)
+  }
+
+  stopifnot(is.character(headers$From))
+
+  # remove options to prevent multiple matching arguments
+  curlopts <- setdiff(curlopts,
+                      c("smtp_server", "mail_from", "mail_rcpt",
+                        "message", "verbose"))
+  # Default to force
+  if (is.null(curlopts$use_ssl)) curlopts$use_ssl <- "force"
+
+  from <- headers$From
+  to <- .get_recipients(headers)
+
+  # use temporary file for .write_mail
+  sock <- file(tempfile(), open = "a+")
+  .write_mail(headers, msg, sock)
+  msg <- readLines(sock)
+  # Delete temp file
+  close(sock)
+  unlink(sock)
+
+  do.call(curl::send_mail,
+    c(list(
+      mail_from = from,
+      mail_rcpt = to,
+      message = msg,
+      verbose = verbose,
+      smtp_server = smtp_server),
+    curlopts)
+  )
+}
+
 ##' Simplistic sendmail utility for R. Uses SMTP to submit a message
 ##' to a local SMTP server.
 ##'
@@ -154,11 +194,23 @@
 ##' @param msg Body text of message or a list containing
 ##'   \code{\link{mime_part}} objects.
 ##' @param \dots ...
+##' @param engine One of: \itemize{
+##' \item{\code{"internal"} for the internal smtp transport (default).}
+##' \item{\code{"curl"} for the use of curl for transport. Enable if you need STARTTLS/SSL
+##' and/or SMTP authentication. See \code{curl::\link[curl]{send_mail}}.}
+##' \item{\code{"debug"} sendmail returns a RFC2822 formatted email message without sending it.}
+##' }
 ##' @param headers Any other headers to include.
 ##' @param control List of SMTP server settings. Valid values are the
 ##'   possible options for \code{\link{sendmail_options}}.
-##'
+##' @param engineopts Options passed to curl if using the curl backend. \itemize{
+##' \item{For authentication pass a list with \code{username} and \code{password}.}
+##' \item{\code{use_ssl} defaults to "force" if unset.}
+##' \item{For available options run \code{curl::\link[curl]{curl_options}}.}
+##' }
 ##' @seealso \code{\link{mime_part}} for a way to add attachments.
+##'
+##' \code{curl::\link[curl]{send_mail}} for curl SMTP URL specification.
 ##' @keywords utilities
 ##'
 ##' @examples
@@ -169,12 +221,22 @@
 ##' body <- list("It works!", mime_part(iris))
 ##' sendmail(from, to, subject, body,
 ##'          control=list(smtpServer="ASPMX.L.GOOGLE.COM"))
-##' }
 ##'
+##' sendmail(from="from@example.org",
+##'   to=c("to1@example.org", "to2@example.org"),
+##'   subject="SMTP auth test",
+##'   msg=mime_part("This message was send using sendmailR and curl."),
+##'   engine = "curl",
+##'   engineopts = list(username = "foo", password = "bar"),
+##'   control=list(smtpServer="smtp://smtp.gmail.com:587", verbose = TRUE)
+##' )
+##' }
 ##' @export
 sendmail <- function(from, to, subject, msg, cc, bcc, ...,
-                     headers=list(),
-                     control=list()) {
+                     engine     = c("internal", "curl", "debug"),
+                     headers    = list(),
+                     control    = list(),
+                     engineopts = list()) {
   ## Argument checks:
   stopifnot(is.list(headers), is.list(control))
   if (length(from) != 1)
@@ -183,7 +245,10 @@ sendmail <- function(from, to, subject, msg, cc, bcc, ...,
   if (length(to) < 1)
     stop("'to' must contain at least one address.")
 
-  get_value <- function(n, default="") {
+  # Uses the first element of vector
+  engine <- match.arg(engine, c("internal", "curl", "debug"))
+
+  get_value <- function(n, default = "") {
     if (n %in% names(control)) {
       return(control[[n]])
     } else if (n %in% names(.SendmailREnv$options)) {
@@ -192,6 +257,9 @@ sendmail <- function(from, to, subject, msg, cc, bcc, ...,
       return(default)
     }
   }
+
+  # For backward compatibility (2023-01-08 deprecated)
+  if (get_value("transport") == "debug") engine <- "debug"
 
   headers$From <- from
   headers$To <- to
@@ -212,15 +280,39 @@ sendmail <- function(from, to, subject, msg, cc, bcc, ...,
   if (is.null(headers$Date))
     headers$Date <- .rfc2822_date()
 
-  transport <- get_value("transport", "smtp")
   verbose <- get_value("verbose", FALSE)
-  if (transport == "smtp") {
-    server <- get_value("smtpServer", "localhost")
-    port <- get_value("smtpPort", 25)
+  server <- get_value("smtpServer", "localhost")
 
-    .smtp_submit_mail(server, port, headers, msg, verbose)
-  } else if (transport == "debug") {
-    message("Recipients: ", paste(.get_recipients(headers), collapse=", "))
-    .write_mail(headers, msg, stderr())
+  if (engine == "curl") {
+    port <- get_value("smtpPort", 587)
+    # Add custom port to URL if none is specified using domain:port
+    # smtps:// uses port 465 by default
+    if (!grepl("[0-9]$", server) && !grepl("smtps:", server))
+      server <- paste0(server, ":", port)
+
+    return(
+      .smtp_submit_mail_curl(server, headers, curlopts = engineopts, msg,
+                             verbose = verbose))
+    }
+
+  if (engine == "internal") {
+    port <- get_value("smtpPort", 25)
+    # Default transport
+    return(
+      .smtp_submit_mail(server, port, headers, msg, verbose))
+  }
+
+  if (engine == "debug") {
+    message("Recipients: ", paste(.get_recipients(headers), collapse = ", "))
+
+    # use temporary file for .write_mail
+    sock <- file(tempfile(), open = "a+")
+    .write_mail(headers, msg, sock)
+    msg <- readLines(sock)
+    # Delete temp file
+    close(sock)
+    unlink(sock)
+
+    return(msg)
   }
 }
