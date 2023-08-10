@@ -197,7 +197,8 @@ mime_part.data.frame <- function(
 ##'
 ##' @param x Character string, possibly a filename.
 ##' @param name Name of attachment.
-##' @param type Content type of inline text. Defaults to "text/plain".
+##' @param type Content type of inline text. Defaults to "text/plain" for 
+##'   character strings and to "application/octet-stream" for files.
 ##' @param flowed Should "format=flowed" be added to the content header.
 ##' @param ... Ignored.
 ##' @return An S3 \code{mime_part} object.
@@ -205,11 +206,16 @@ mime_part.data.frame <- function(
 ##' @method mime_part character
 ##' @export
 ##' @seealso \code{\link{mime_part_html}} for adding inline HTML
-mime_part.character <- function(x, name, type = "text/plain", flowed = FALSE, ...) {
+mime_part.character <- function(x, name, type, flowed = FALSE, ...) {
   if (length(x) == 1 && file.exists(x)) {
-    .file_attachment(x, name, ...)
+    if (missing(type)) {
+      type = "application/octet-stream"
+    }
+    .file_attachment(x, name, type, ...)
   } else {
-
+    if (missing(type)) {
+      type = "text/plain"
+    }
     res <- .generate_charset_convert_utf8(x)
     format_flowed <- ifelse(flowed, "; format=flowed", "")
 

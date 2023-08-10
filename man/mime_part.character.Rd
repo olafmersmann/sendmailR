@@ -4,14 +4,15 @@
 \alias{mime_part.character}
 \title{Create an inline character MIME Part}
 \usage{
-\method{mime_part}{character}(x, name, type = "text/plain", flowed = FALSE, ...)
+\method{mime_part}{character}(x, name, type, flowed = FALSE, ...)
 }
 \arguments{
 \item{x}{Character string, possibly a filename.}
 
 \item{name}{Name of attachment.}
 
-\item{type}{Content type of inline text. Defaults to "text/plain".}
+\item{type}{Content type of inline text. Defaults to "text/plain" for 
+character strings and to "application/octet-stream" for files.}
 
 \item{flowed}{Should "format=flowed" be added to the content header.}
 
