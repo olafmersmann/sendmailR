@@ -6,3 +6,4 @@ OSSMETADATA
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
 ^\.github$
+^.jj/
