@@ -13,7 +13,7 @@
 ##' argument.
 ##'
 ##' List of options:
-##' \itemize{
+##' \describe{
 ##' \item{smtpServer}{SMTP server to contact. This can either be the
 ##'   mail server responsible for the destination addresses domain or a
 ##'   smarthost provided by your ISP or institution. SMTP AUTH is
