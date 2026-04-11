@@ -146,16 +146,17 @@
                                    msg, verbose = FALSE) {
   # Check if curl is installed.
   if (!requireNamespace("curl", quietly = TRUE)) {
-    stop("sendmail: engine = \"curl\" needs the curl package installed. 
+    stop("sendmail: engine = \"curl\" needs the curl package installed.
          Please run: install.packages(\"curl\")", call. = FALSE)
   }
 
   stopifnot(is.character(headers$From))
 
   # remove options to prevent multiple matching arguments
-  curlopts <- setdiff(curlopts,
-                      c("smtp_server", "mail_from", "mail_rcpt",
-                        "message", "verbose"))
+  valid_options <- setdiff(
+    names(curlopts),
+    c("smtp_server", "mail_from", "mail_rcpt", "message", "verbose"))
+  curlopts <- curlopts[valid_options]
   # Default to force
   if (is.null(curlopts$use_ssl)) curlopts$use_ssl <- "force"
 
@@ -170,15 +171,14 @@
   close(sock)
   unlink(sock)
 
-  do.call(curl::send_mail,
-    c(list(
-      mail_from = from,
-      mail_rcpt = to,
-      message = msg,
-      verbose = verbose,
-      smtp_server = smtp_server),
-    curlopts)
-  )
+  args <- c(list(
+    mail_from = from,
+    mail_rcpt = to,
+    message = msg,
+    verbose = verbose,
+    smtp_server = smtp_server),
+  curlopts)
+  do.call(curl::send_mail, args)
 }
 
 ##' Simplistic sendmail utility for R. Uses SMTP to submit a message
